@@ -1,0 +1,8 @@
+#!/usr/bin/bash
+PREFIX="${PWD}/cross"
+TARGET=i686-elf
+PATH="${PWD}/cross/bin:${PATH}"
+
+export PATH \
+  TARGET \
+  PREFIX
