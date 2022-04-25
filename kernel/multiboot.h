@@ -3,6 +3,22 @@
 #ifndef MULTIBOOT_HEADER
 #define MULTIBOOT_HEADER 1
 
+struct multiboot_aout_symbol_table {
+  uint32_t tabsize;
+  uint32_t strsize;
+  uint32_t addr;
+  uint32_t reserved;
+};
+typedef struct multiboot_aout_symbol_table multiboot_aout_symbol_table_t;
+
+struct multiboot_elf_section_header_table {
+  uint32_t num;
+  uint32_t size;
+  uint32_t addr;
+  uint32_t shndx;
+};
+typedef struct multiboot_elf_section_header_table multiboot_elf_section_header_table_t;
+
 struct multiboot_info {
   uint32_t flags;
 
@@ -21,9 +37,10 @@ struct multiboot_info {
   uint32_t mods_addr;
 
   /* present if flags[4] or flags[5] is set */
-  uint32_t syms1;
-  uint32_t syms2;
-  uint32_t syms3;
+  union {
+    multiboot_aout_symbol_table_t aout_sym;
+    multiboot_elf_section_header_table_t elf_sec;
+  } u;
 
   /* present if flags[6] is set */
   uint32_t mmap_length;
@@ -59,6 +76,20 @@ struct multiboot_info {
   uint8_t framebuffer_type;
   uint32_t color_info1;
   uint16_t color_info2;
+  union {
+    struct {
+      uint32_t framebuffer_palette_addr;
+      uint16_t framebuffer_palette_num_colors;
+    };
+    struct {
+      uint8_t framebuffer_red_field_position;
+      uint8_t framebuffer_red_mask_size;
+      uint8_t framebuffer_green_field_position;
+      uint8_t framebuffer_green_mask_size;
+      uint8_t framebuffer_blue_field_position;
+      uint8_t framebuffer_blue_mask_size;
+    };
+  };
 }__attribute__((packed));
 typedef struct multiboot_info multiboot_info_t;
 

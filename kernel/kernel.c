@@ -49,7 +49,7 @@ void putchar (uint16_t c, int32_t cx, int32_t cy, uint32_t fg, uint32_t bg)
 
 }
 
-void kernel_main (uint64_t multiboot_struct_addr)
+void kernel_main (uint32_t multiboot_struct_addr)
 {
   mbi = (multiboot_info_t *)multiboot_struct_addr;
 
