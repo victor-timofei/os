@@ -24,3 +24,16 @@ make crossdev
 ```shell
 source .cross_env
 ```
+
+## Kernel
+
+### Build
+
+```shell
+make
+```
+
+### Run on qemu
+```shell
+make run-qemu
+```
