@@ -3,3 +3,6 @@ binutils.tar.gz
 cross/
 gcc-*/
 binutils-*/
+*.o
+build/
+.ccls-cache/
