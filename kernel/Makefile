@@ -12,7 +12,7 @@ LINKER_LD := linker.ld
 all: $(BUILD_DIR)/kernel.bin
 
 $(BUILD_DIR)/kernel.bin: $(OBJECTS_S) $(OBJECTS_C) $(LINKER_LD)
-	$(CROSS_CC) \
+	@$(CROSS_CC) \
 		-T $(LINKER_LD) \
 		$(LDFLAGS) \
 		$(OBJECTS_C) \

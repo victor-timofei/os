@@ -2,6 +2,7 @@ OBJECTS_GZ  := $(patsubst %.o, /usr/share/kbd/consolefonts/%.psfu.gz, $(OBJECTS)
 OBJECTS_PSF := $(patsubst %.o, $(BUILD_DIR)/%.psfu, $(OBJECTS))
 SYMS_PREFIX := consolefonts
 
+.PHONY: all
 all: $(BUILD_DIR)/$(OBJECTS)
 
 $(BUILD_DIR)/%.o: $(OBJECTS_PSF)

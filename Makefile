@@ -10,6 +10,8 @@ BUILD_DIR_ABS := $(abspath $(BUILD_DIR))
 
 FONT_OBJS := $(patsubst %.o,$(BUILD_DIR_ABS)/%.o, $(FONTS))
 
+ISO_DIR := $(BUILD_DIR)/iso_dir
+
 CROSS_AS         := ${TARGET}-as
 CROSS_CC         := ${TARGET}-gcc
 CROSS_LD         := ${TARGET}-ld
@@ -20,6 +22,25 @@ export PATH      := ${CROSS_BIN}:$(PATH)
 
 .PHONY: all
 all: $(BUILD_DIR)/kernel.bin $(BUILD_DIR)/$(FONTS)
+
+.PHONY: run-qemu
+run-qemu: $(BUILD_DIR)/kernel.iso
+	qemu-system-x86_64 -cdrom $<
+
+$(BUILD_DIR)/kernel.iso: $(ISO_DIR)/boot/kernel.bin
+	grub-mkrescue -o $@ $(ISO_DIR)
+
+$(ISO_DIR)/boot/kernel.bin: $(BUILD_DIR)/kernel.bin $(ISO_DIR)/boot/grub/grub.cfg
+	@cp $< $@
+
+$(ISO_DIR)/boot/grub/grub.cfg: $(ISO_DIR)/boot
+	@cp -r grub $<
+
+$(ISO_DIR)/boot: $(ISO_DIR)
+	@mkdir -p $@
+
+$(ISO_DIR):
+	@mkdir -p $@
 
 $(BUILD_DIR)/kernel.bin: $(BUILD_DIR) $(BUILD_DIR)/$(FONTS)
 	@$(MAKE) -C kernel \
