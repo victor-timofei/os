@@ -25,10 +25,10 @@ all: $(BUILD_DIR)/kernel.bin $(BUILD_DIR)/$(FONTS)
 
 .PHONY: run-qemu
 run-qemu: $(BUILD_DIR)/kernel.iso
-	qemu-system-x86_64 -cdrom $<
+	@qemu-system-x86_64 -cdrom $<
 
 $(BUILD_DIR)/kernel.iso: $(ISO_DIR)/boot/kernel.bin
-	grub-mkrescue -o $@ $(ISO_DIR)
+	@grub-mkrescue -o $@ $(ISO_DIR)
 
 $(ISO_DIR)/boot/kernel.bin: $(BUILD_DIR)/kernel.bin $(ISO_DIR)/boot/grub/grub.cfg
 	@cp $< $@
