@@ -30,6 +30,7 @@ search for this signature in the first 8 KiB of the kernel file, aligned at a
 forced to be within the first 8 KiB of the kernel file.
 */
 .section .multiboot
+.code32
 .align 4
 .long MAGIC
 .long FLAGS
@@ -73,11 +74,46 @@ System V ABI standard and de-facto extensions. The compiler will assume the
 stack is properly aligned and failure to align the stack will result in
 undefined behavior.
 */
+
+/* GDT varibles */
+.set GDT_ZERO_ENTRY,         0x0
+.set GDT_EXECUTABLE_FLAG,    1<<43
+.set GDT_CODE_AND_DATA_FLAG, 1<<44
+.set GDT_PRESENT_FLAG,       1<<47
+.set GDT_64_BIT_FLAG,        1<<53
+.set GDT_FLAGS,              GDT_EXECUTABLE_FLAG | GDT_CODE_AND_DATA_FLAG | GDT_PRESENT_FLAG | GDT_64_BIT_FLAG
+
 .section .bss
-.align 16
+/* We will be using hugepages, so we will need only 3 page levels. */
+.align 4096
+page_table_l4:
+.skip 4096
+page_table_l3:
+.skip 4096
+page_table_l2:
+.skip 4096
+page_table_l3_framebuffer:
+.skip 4096
+page_table_l2_framebuffer:
+.skip 4096
 stack_bottom:
-.skip 16384 # 16 KiB
+.skip 4096 * 4
 stack_top:
+
+.section .rodata
+.align 4
+gdt64:
+.quad GDT_ZERO_ENTRY
+.set gdt64_code_segment, . - gdt64
+.quad GDT_FLAGS
+/*
+gdt64_data_entry:
+.set gdt64_data_segment, gdt64_data_entry - gdt64
+.quad (1<<44) | (1<<46) | (1<<41)
+*/
+gdt64_pointer:
+.word . - gdt64 - 1
+.quad gdt64
 
 /*
 The linker script specifies _start as the entry point to the kernel and the
@@ -85,7 +121,9 @@ bootloader will jump to this position once the kernel has been loaded. It
 doesn't make sense to return from this function as the bootloader is gone.
 */
 .section .text
+.code32
 .global _start
+.extern long_mode_start
 .type _start, @function
 _start:
         /*
@@ -126,8 +164,12 @@ _start:
         since (pushed 0 bytes so far), so the alignment has thus been
         preserved and the call is well defined.
         */
-        pushl %ebx /* pass the Multiboot Info struct addr to kernel_main */
-        call kernel_main
+        call setup_page_tables
+        call setup_framebuffer_page_tables
+        call enable_paging
+
+        lgdt (gdt64_pointer)
+        ljmp $gdt64_code_segment, $long_mode_start
 
         /*
         If the system has nothing more to do, put the computer into an
@@ -150,3 +192,92 @@ Set the size of the _start symbol to the current location '.' minus its start.
 This is useful when debugging or when you implement call tracing.
 */
 .size _start, . - _start
+
+setup_page_tables:
+        movl $page_table_l3, %eax
+        orl $0b11, %eax           /* flags are present and writable */
+        movl %eax, page_table_l4 /* set page_table_l4 first entry to point to page_table_l3 */
+
+        /* Same for next level */
+        movl $page_table_l2, %eax
+        orl $0b11, %eax
+        movl %eax, page_table_l3
+
+        /* Huge pages of size 2 MiBs */
+        movl $0, %ecx
+.loop:
+
+        movl $0x200000, %eax
+        mul %ecx
+
+        /* present, writable, hugepage */
+        orl $0b10000011, %eax
+        movl %eax, page_table_l2(, %ecx, 8)
+
+        inc %ecx
+        cmp $512, %ecx
+        jne .loop
+
+        ret
+
+setup_framebuffer_page_tables:
+        /* Get the multiboot struct address */
+        movl %ebx, %edx
+
+        /*
+        Offset to the framebuffer member. framebuffer[31:0] bits
+        */
+        add $88, %edx
+        movl (%edx), %edx
+
+        /* L4 */
+        movl %edx, %ecx
+        shr $30, %ecx
+        and $0b111111111, %ecx
+
+        and $0xC0000000, %edx /* We will start mapping from this address */
+
+        movl $page_table_l2_framebuffer, %eax
+        orl $0b11, %eax
+        movl %eax, page_table_l3(, %ecx, 8)
+
+        /* Huge pages of size 2 MiBs */
+        movl $0, %ecx
+.loop2:
+
+        movl $0x200000, %eax
+        imul %ecx, %eax
+        orl %edx, %eax
+
+        /* present, writable, hugepage */
+        orl $0b10000011, %eax
+        movl %eax, page_table_l2_framebuffer(, %ecx, 8)
+
+        inc %ecx
+        cmp $512, %ecx
+        jne .loop2
+
+        ret
+
+enable_paging:
+        /* pass page table location to CR3 */
+        movl $page_table_l4, %eax
+        movl %eax, %cr3
+
+        /* Enable Physical Address Extension */
+        movl %cr4, %eax
+        orl $(1<<5), %eax
+        mov %eax, %cr4
+
+        /* Enable long mode */
+        mov $0xC0000080, %ecx
+        rdmsr
+        orl $(1<<8), %eax
+        wrmsr
+
+        /* Enable paging */
+        movl %cr0, %eax
+        orl $(1<<31), %eax
+        mov %eax, %cr0
+
+        ret

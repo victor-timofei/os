@@ -6,8 +6,8 @@
 #error "You are not using a cross-compiler, you will most certainly run into trouble"
 #endif
 
-#if !defined (__i386__)
-#error "The kernel needs to be compiled with a ix86-elf compiler"
+#if !defined (__x86_64__)
+#error "The kernel needs to be compiled with a x86_64-elf compiler"
 #endif
 
 /* graphics framebuffer */

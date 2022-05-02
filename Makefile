@@ -3,7 +3,7 @@ GCC_VERSION      := 11.2.0
 PREFIX           := ${PWD}/cross
 CROSS_BIN        := ${PREFIX}/bin
 BUILD_DIR        := ./build
-TARGET           := i686-elf
+TARGET           := x86_64-elf
 FONTS            := default8x16.o
 
 BUILD_DIR_ABS := $(abspath $(BUILD_DIR))
@@ -15,8 +15,8 @@ ISO_DIR := $(BUILD_DIR)/iso_dir
 CROSS_AS         := ${TARGET}-as
 CROSS_CC         := ${TARGET}-gcc
 CROSS_LD         := ${TARGET}-ld
-CFLAGS           := "-std=gnu99 -ffreestanding -O2 -Wall -Wextra -I$$PWD/kernel"
-LDFLAGS          := "-ffreestanding -O2 -nostdlib -lgcc"
+CFLAGS           := "-ggdb -std=gnu99 -ffreestanding -O2 -Wall -Wextra -I$$PWD/kernel -mno-red-zone"
+LDFLAGS          := "-ggdb -ffreestanding -O2 -nostdlib -lgcc"
 
 export PATH      := ${CROSS_BIN}:$(PATH)
 
