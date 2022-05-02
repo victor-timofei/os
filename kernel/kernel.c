@@ -24,6 +24,9 @@ uint32_t console_x;
 
 #define PIXEL uint32_t
 
+#define CONSOLE_BG 0
+#define CONSOLE_FG 0xFFFFFFFF
+
 void putchar (uint16_t c, int32_t cx, int32_t cy, uint32_t fg, uint32_t bg)
 {
   psf_font_t *font = (psf_font_t *)&consolefonts_binary__start;
@@ -49,23 +52,30 @@ void putchar (uint16_t c, int32_t cx, int32_t cy, uint32_t fg, uint32_t bg)
 
 }
 
+void console_write(char *str)
+{
+  for (int idx = 0; str[idx] != '\0'; idx++ ) {
+    if (str[idx] == '\n') {
+      console_x = 0;
+      console_y++;
+      continue;
+    }
+    putchar((uint16_t) str[idx], console_x, console_y, CONSOLE_FG, CONSOLE_BG);
+    console_x++;
+  }
+}
+
+void console_init()
+{
+  console_x = 0;
+  console_y = 0;
+}
+
 void kernel_main (uint32_t multiboot_struct_addr)
 {
   mbi = (multiboot_info_t *)multiboot_struct_addr;
-
   fb = (char *)mbi->framebuffer_addr;
   scanline = mbi->framebuffer_pitch;
 
-  putchar ((uint16_t)'H', 0,  0, 0xFFFFFFFF, 0);
-  putchar ((uint16_t)'e', 1,  0, 0xFFFFFFFF, 0);
-  putchar ((uint16_t)'l', 2,  0, 0xFFFFFFFF, 0);
-  putchar ((uint16_t)'l', 3,  0, 0xFFFFFFFF, 0);
-  putchar ((uint16_t)'o', 4,  0, 0xFFFFFFFF, 0);
-  putchar ((uint16_t)' ', 5,  0, 0xFFFFFFFF, 0);
-  putchar ((uint16_t)'W', 6,  0, 0xFFFFFFFF, 0);
-  putchar ((uint16_t)'o', 7,  0, 0xFFFFFFFF, 0);
-  putchar ((uint16_t)'r', 8,  0, 0xFFFFFFFF, 0);
-  putchar ((uint16_t)'l', 9,  0, 0xFFFFFFFF, 0);
-  putchar ((uint16_t)'d', 10, 0, 0xFFFFFFFF, 0);
-  putchar ((uint16_t)'!', 11, 0, 0xFFFFFFFF, 0);
+  console_write("Hello World!");
 }
