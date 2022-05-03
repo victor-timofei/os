@@ -133,8 +133,10 @@ void kprintf(char *format, ...)
 
   for (int idx = 0; format[idx] != '\0'; idx++) {
     while (format[idx] != '%') {
+
+      /* Never overrun the buffer */
       if (format[idx] == '\0')
-        break;
+        return;
 
       console_puts(format[idx]);
       idx++;
