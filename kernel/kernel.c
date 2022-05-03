@@ -202,9 +202,9 @@ void kprintf(char *format, ...)
   va_end(arg);
 }
 
-void kernel_main (uint32_t multiboot_struct_addr)
+void kernel_main (multiboot_info_t *multiboot_struct_addr)
 {
-  mbi = (multiboot_info_t *)multiboot_struct_addr;
+  mbi = multiboot_struct_addr;
   fb = (char *)mbi->framebuffer_addr;
   scanline = mbi->framebuffer_pitch;
 
