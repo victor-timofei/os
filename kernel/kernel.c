@@ -109,7 +109,13 @@ void convert(int num, int base, char *buf, int bufsize)
     if (idx == bufsize - 1)
       break;
 
-    buf[idx] = (num % base) + '0';
+    int remainder = num % base;
+
+    if (remainder > 9)
+      buf[idx] = remainder - 10 + 'A';
+    else
+      buf[idx] = remainder + '0';
+
     num /= base;
     idx++;
   } while(num != 0);
@@ -151,6 +157,12 @@ void kprintf(char *format, ...)
         }
 
         convert(i, 10, buffer, 50);
+        console_write(buffer);
+        break;
+      case 'X':
+        i = va_arg(arg, int);
+
+        convert(i, 16, buffer, 50);
         console_write(buffer);
         break;
     }
