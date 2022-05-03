@@ -99,7 +99,7 @@ void console_init(multiboot_info_t *mbi)
   console_y = 0;
 }
 
-void convert(int num, int base, char *buf, int bufsize)
+void convert(uint64_t num, int base, char *buf, int bufsize)
 {
   int idx = 0;
   buf[idx] = '\0';
@@ -135,7 +135,7 @@ void kprintf(char *format, ...)
   va_start(arg, format);
 
   char buffer[50];
-  int i;
+  long i;
 
   for (int idx = 0; format[idx] != '\0'; idx++) {
     while (format[idx] != '%') {
@@ -150,7 +150,7 @@ void kprintf(char *format, ...)
     idx++;
     switch (format[idx]) {
       case 'd':
-        i = va_arg(arg, int);
+        i = va_arg(arg, long);
         if (i < 0) {
           i = -i;
           console_puts('-');
@@ -160,7 +160,7 @@ void kprintf(char *format, ...)
         console_write(buffer);
         break;
       case 'X':
-        i = va_arg(arg, int);
+        i = va_arg(arg, long);
 
         convert(i, 16, buffer, 50);
         console_write(buffer);
