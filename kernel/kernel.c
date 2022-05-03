@@ -118,8 +118,8 @@ void convert(int num, int base, char *buf, int bufsize)
 
   for (int i = 0; i < idx / 2; i++) {
     int tmp = buf[i];
-    buf[i] = buf[idx-1];
-    buf[idx-1] = tmp;
+    buf[i] = buf[idx-1-i];
+    buf[idx-1-i] = tmp;
   }
 }
 
