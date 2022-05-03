@@ -39,7 +39,7 @@ void putchar (uint16_t c, int32_t cx, int32_t cy, uint32_t fg, uint32_t bg)
   unsigned char *glyph = (unsigned char *)&consolefonts_binary__start + font->headersize +
     (c > 0 && c < font->numglyphs ? c : 0) * font->bytesperglyph;
 
-  uint32_t offs = (cy * font->height * scanline) + (cx * (font->width + 1) * sizeof (PIXEL));
+  uint32_t offs = (cy * font->height * scanline) + (cx * (font->width) * sizeof (PIXEL));
 
   uint32_t x, y, line, mask;
   for (y = 0; y < font->height; y++) {
@@ -63,10 +63,15 @@ void console_push()
 
 void console_puts(uint16_t ch)
 {
-  if (ch == '\n' || console_x > console_max_x) {
+  if (ch == '\n') {
     console_x = 0;
     console_y++;
     return;
+  }
+
+  if (console_x >= console_max_x) {
+    console_x = 0;
+    console_y++;
   }
 
   if (console_y > console_max_y)
@@ -160,6 +165,4 @@ void kernel_main (uint32_t multiboot_struct_addr)
 
   console_init(mbi);
   kprintf("Console width is %d\n", mbi->framebuffer_width);
-  // TODO: Test line wrapping
-  //console_write("Hello World! 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890 1234567890");
 }
