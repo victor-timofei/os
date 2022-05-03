@@ -23,8 +23,8 @@ multiboot_info_t *mbi;
 uint32_t console_y;
 uint32_t console_x;
 
-uint32_t console_max_y;
-uint32_t console_max_x;
+uint32_t console_rows;
+uint32_t console_cols;
 
 #define PIXEL uint32_t
 
@@ -56,9 +56,40 @@ void putchar (uint16_t c, int32_t cx, int32_t cy, uint32_t fg, uint32_t bg)
 
 }
 
-void console_push()
+void set_pixel(uint64_t x, uint64_t y, PIXEL color)
 {
-  // TODO: implement console pushing
+  uint32_t pos = (y * sizeof (PIXEL) * mbi->framebuffer_width) + (x * sizeof (PIXEL));
+  *((PIXEL *)(fb+pos)) = color;
+}
+
+PIXEL get_pixel(uint64_t x, uint64_t y)
+{
+  uint32_t pos = (y * sizeof (PIXEL) * mbi->framebuffer_width) + (x * sizeof (PIXEL));
+  return *((PIXEL *)(fb+pos));
+}
+
+void console_scroll()
+{
+  const uint32_t height = mbi->framebuffer_height;
+  const uint32_t width = mbi->framebuffer_width;
+  const uint32_t font_height = ((psf_font_t *)&consolefonts_binary__start)->height;
+
+  /* Move each row to the previous one */
+  for (int row = 1; row < console_rows; row++) {
+    for (int y = 0; y < font_height; y++ ) {
+      for (int x = 0; x < width; x++ ) {
+        PIXEL p = get_pixel(x, (row * font_height) + y);
+        set_pixel(x, ((row - 1) * font_height) + y, p);
+      }
+    }
+  }
+
+  /* Reset bottom row*/
+  for (int y = 0; y < font_height; y++ ) {
+    for (int x = 0; x < width; x++ ) {
+      set_pixel(x, ((console_rows - 1) * font_height) + y, CONSOLE_BG);
+    }
+  }
 }
 
 void console_puts(uint16_t ch)
@@ -69,13 +100,13 @@ void console_puts(uint16_t ch)
     return;
   }
 
-  if (console_x >= console_max_x) {
+  if (console_x >= console_cols) {
     console_x = 0;
     console_y++;
   }
 
-  if (console_y > console_max_y)
-    console_push();
+  if (console_y >= console_rows)
+    console_scroll();
 
   putchar((uint16_t) ch, console_x, console_y, CONSOLE_FG, CONSOLE_BG);
   console_x++;
@@ -92,8 +123,8 @@ void console_init(multiboot_info_t *mbi)
 {
   psf_font_t *font = (psf_font_t *)&consolefonts_binary__start;
 
-  console_max_y = mbi->framebuffer_height / font->height - 1;
-  console_max_x = mbi->framebuffer_width / font->width - 1;
+  console_rows = mbi->framebuffer_height / font->height;
+  console_cols = mbi->framebuffer_width / font->width;
 
   console_x = 0;
   console_y = 0;
