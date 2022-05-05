@@ -17,6 +17,12 @@ multiboot_info_t *mbi;
 
 psf_font_t *font;
 
+/*
+ * We write a character on the screen using the psf font.
+ * This function is not meant for external usage as it does not
+ * handle line breaking, scrolling, and special characters such
+ * as linefeed.
+ */
 void putchar (uint16_t c, int32_t cx, int32_t cy, uint32_t fg, uint32_t bg)
 {
   uint32_t bytesperline = (font->width + 7) / 8;
@@ -53,6 +59,9 @@ PIXEL get_pixel(uint64_t x, uint64_t y)
   return *((PIXEL *)(fb+pos));
 }
 
+/*
+ * Move all characters one row above.
+ */
 void console_scroll()
 {
   const uint32_t width = mbi->framebuffer_width;
@@ -76,6 +85,11 @@ void console_scroll()
   }
 }
 
+/*
+ * Write a single character the console.
+ * The console is a share resource, a syncing mechanism must be used.
+ * The console scrolling and line wrapping is handled.
+ */
 void console_puts(uint16_t ch)
 {
   if (ch == '\n') {
@@ -96,6 +110,10 @@ void console_puts(uint16_t ch)
   console_x++;
 }
 
+/*
+ * Write a character array to the console.
+ * The console is a share resource, a syncing mechanism must be used.
+ */
 void console_write(char *str)
 {
   for (int idx = 0; str[idx] != '\0'; idx++ ) {
@@ -103,6 +121,9 @@ void console_write(char *str)
   }
 }
 
+/*
+ * Initialize the console.
+ */
 void console_init(multiboot_info_t *multiboot_struct)
 {
   mbi = multiboot_struct;

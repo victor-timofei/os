@@ -92,8 +92,6 @@ page_table_l3:
 .skip 4096
 page_table_l2:
 .skip 4096
-page_table_l3_framebuffer:
-.skip 4096
 page_table_l2_framebuffer:
 .skip 4096
 stack_bottom:
@@ -106,11 +104,6 @@ gdt64:
 .quad GDT_ZERO_ENTRY
 .set gdt64_code_segment, . - gdt64
 .quad GDT_FLAGS
-/*
-gdt64_data_entry:
-.set gdt64_data_segment, gdt64_data_entry - gdt64
-.quad (1<<44) | (1<<46) | (1<<41)
-*/
 gdt64_pointer:
 .word . - gdt64 - 1
 .quad gdt64

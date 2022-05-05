@@ -3,6 +3,9 @@
 #include <stdarg.h>
 #include <stdint.h>
 
+/*
+ * Converts a decimal number to a different base.
+ */
 void convert(uint64_t num, int base, char *buf, int bufsize)
 {
   int idx = 0;
@@ -33,6 +36,9 @@ void convert(uint64_t num, int base, char *buf, int bufsize)
   }
 }
 
+/*
+ * Print formatted string.
+ */
 void kprintf(char *format, ...)
 {
   va_list arg;
