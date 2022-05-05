@@ -2,8 +2,8 @@
 SOURCES_S := boot.s boot64.s
 OBJECTS_S := $(patsubst %.s, $(BUILD_DIR)/kernel/%.o, $(SOURCES_S))
 
-SOURCES_C := kernel.c
-HEADERS_C := multiboot.h psf.h
+SOURCES_C := kernel.c kprintf.c console.c
+HEADERS_C := multiboot.h psf.h kprintf.h console.h
 OBJECTS_C := $(patsubst %.c, $(BUILD_DIR)/kernel/%.o, $(SOURCES_C))
 
 LINKER_LD := linker.ld

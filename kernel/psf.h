@@ -5,6 +5,10 @@
 
 #define PSF_FONT_MAGIC 0x864ab572
 
+/* extern the symbols in the psf object */
+extern char consolefonts_binary__start;
+extern char consolefonts_binary__end;
+
 struct psf_font {
   uint32_t magic;         /* magic bytes to identify psf */
   uint32_t version;       /* zero */
